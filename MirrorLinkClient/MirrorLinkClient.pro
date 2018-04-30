@@ -37,5 +37,5 @@ FORMS    += mainwindow.ui
 
 unix:!macx: LIBS += -L/usr/local/libxml2/lib/ -lxml2
 
-INCLUDEPATH += /usr/local/libxml2/include/libxml2
+INCLUDEPATH += /usr/local/libxml2/include/libxml2 /usr/include/libxml2
 DEPENDPATH += /usr/local/libxml2/include/libxml2
