@@ -4,35 +4,24 @@
 #include <stdio.h>
 
 #include "../Platform/conn.h"
+#include "../Platform/http_client.h"
 #include "../Utils/buffer.h"
 #include "../Utils/str.h"
 
-struct http_req {
-	str_t method;
-	str_t path;
-	str_t header;
-	str_t body;
-};
-
-struct http_rsp {
-	uint16_t errcode;
-	str_t body;
-};
-
-struct http_req *http_client_make_req(char *method, char *path)
+http_req *http_client_make_req(char *method, const char *path)
 {
-	struct http_req *req = (struct http_req *)calloc(1, sizeof(*req));
+	http_req *req = (http_req *)calloc(1, sizeof(*req));
 	str_append(&(req->method), method);
 	str_append(&(req->path), path);
 	return req;
 }
 
-void http_client_add_header(struct http_req *req, char *header)
+void http_client_add_header(http_req *req, const char *header)
 {
 	str_append(&(req->header), header);
 }
 
-int http_client_set_body(struct http_req *req, char *body)
+int http_client_set_body(http_req *req, const char *body)
 {
 	if (strcmp(req->method, "GET")) {
 		str_append(&(req->body), body);
@@ -41,13 +30,13 @@ int http_client_set_body(struct http_req *req, char *body)
 	return -1;
 }
 
-struct http_rsp *http_client_send(char *ip, uint16_t port, struct http_req *req)
+http_rsp *http_client_send(const char *ip, uint16_t port, http_req *req)
 {
 	int fd;
 	char buf[100];
 	str_t wbuf = 0;
-	struct buffer rbuf;
-	struct http_rsp *rsp;
+	buffer rbuf;
+	http_rsp *rsp;
 	int quit = 0;
 	buffer_init(&rbuf, 0);
 	fd = conn_open(ip, port);
@@ -76,7 +65,7 @@ struct http_rsp *http_client_send(char *ip, uint16_t port, struct http_req *req)
 	free(req->path);
 	free(req);
 	conn_write(fd, wbuf, strlen(wbuf));
-	rsp = (struct http_rsp *)calloc(1, sizeof(*rsp));
+	rsp = (http_rsp *)calloc(1, sizeof(*rsp));
 	while (0 == quit) {
 		char *pos;
 		uint32_t len = 0;
@@ -130,7 +119,7 @@ struct http_rsp *http_client_send(char *ip, uint16_t port, struct http_req *req)
 	return rsp;
 }
 
-uint16_t http_client_get_errcode(struct http_rsp *rsp)
+uint16_t http_client_get_errcode(http_rsp *rsp)
 {
 	if (rsp) {
 		return rsp->errcode;
@@ -139,7 +128,7 @@ uint16_t http_client_get_errcode(struct http_rsp *rsp)
 	}
 }
 
-char *http_client_get_body(struct http_rsp *rsp)
+char *http_client_get_body(http_rsp *rsp)
 {
 	if (rsp) {
 		return rsp->body;
@@ -148,7 +137,7 @@ char *http_client_get_body(struct http_rsp *rsp)
 	}
 }
 
-void http_client_free_rsp(struct http_rsp *rsp)
+void http_client_free_rsp(http_rsp *rsp)
 {
 	if (rsp) {
 		free(rsp->body);

@@ -1,0 +1,11 @@
+mkdir build
+cd build
+qmake -qt=5 ../MirrorLinkClient/
+make
+
+
+Samsung
+http://192.168.42.129:4004/description.xml
+
+LG
+http://192.168.42.129:1378/

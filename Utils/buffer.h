@@ -7,17 +7,17 @@
 extern "C" {
 #endif
 
-struct buffer {
+typedef struct _buffer {
 	uint8_t *buf;
 	uint32_t size;
 	uint32_t len;
-};
+} buffer;
 
-extern void buffer_init(struct buffer *buf, uint32_t size);
+void buffer_init(buffer *buf, uint32_t size);
 
-extern void buffer_clear(struct buffer *buf);
+void buffer_clear(buffer *buf);
 
-extern void buffer_append(struct buffer *buf, int size);
+void buffer_append(buffer *buf, int size);
 
 #ifdef __cplusplus
 }

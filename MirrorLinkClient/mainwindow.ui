@@ -23,6 +23,15 @@
       <height>250</height>
      </rect>
     </property>
+    <property name="editTriggers">
+     <set>QAbstractItemView::NoEditTriggers</set>
+    </property>
+    <property name="viewMode">
+     <enum>QListView::IconMode</enum>
+    </property>
+    <property name="uniformItemSizes">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QListView" name="devListView">
     <property name="geometry">
@@ -42,6 +51,9 @@
       <width>151</width>
       <height>27</height>
      </rect>
+    </property>
+    <property name="text">
+     <string>http://192.168.42.129:4004/description.xml</string>
     </property>
    </widget>
    <widget class="QPushButton" name="startButton">
@@ -103,7 +115,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>25</height>
+     <height>19</height>
     </rect>
    </property>
   </widget>

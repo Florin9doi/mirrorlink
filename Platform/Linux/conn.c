@@ -141,7 +141,7 @@ read_intr:
 	return 0;
 }
 
-int conn_read_all(int fd, struct buffer *buf)
+int conn_read_all(int fd, buffer *buf)
 {
 	fd_set rfds;
 	fd_set efds;

@@ -29,10 +29,16 @@ void ThreadManager::launchApp(quint32 appid)
 	emit launch(appid);
 }
 
+void ThreadManager::onAddApp(int appID, char *name, char *description)
+{
+	emit addApp(appID, name, description);
+}
+
 void ThreadManager::onThreadStart()
 {
 	connect(this, &ThreadManager::start, &m_client, &MirrorLinkClient::onStart);
 	connect(this, &ThreadManager::stop, &m_client, &MirrorLinkClient::onStop);
 	connect(this, &ThreadManager::launch, &m_client, &MirrorLinkClient::onLaunch);
+	connect(&m_client, &MirrorLinkClient::addApp, this, &ThreadManager::onAddApp);
 }
 

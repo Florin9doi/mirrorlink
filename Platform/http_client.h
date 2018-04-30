@@ -2,23 +2,32 @@
 #define _HTTP_CLIENT_H
 
 #include <stdint.h>
+#include "../Utils/str.h"
 
-struct http_req;
+typedef struct _http_req {
+	str_t method;
+	str_t path;
+	str_t header;
+	str_t body;
+} http_req;
 
-struct http_rsp;
+typedef struct _http_rsp {
+	uint16_t errcode;
+	str_t body;
+} http_rsp;
 
-extern struct http_req *http_client_make_req(char *method, char *path);
+http_req *http_client_make_req(char *method, const char *path);
 
-extern void http_client_add_header(struct http_req *req, char *header);
+void http_client_add_header(http_req *req, const char *header);
 
-extern int http_client_set_body(struct http_req *req, uint8_t *body);
+int http_client_set_body(http_req *req, const char *body);
 
-extern struct http_rsp *http_client_send(char *ip, uint16_t port, struct http_req *req);
+http_rsp *http_client_send(const char *ip, uint16_t port, http_req *req);
 
-extern uint16_t http_client_get_errcode(struct http_rsp *rsp);
+uint16_t http_client_get_errcode(http_rsp *rsp);
 
-extern char *http_client_get_body(struct http_rsp *rsp);
+char *http_client_get_body(http_rsp *rsp);
 
-extern void http_client_free_rsp(struct http_rsp *rsp);
+void http_client_free_rsp(http_rsp *rsp);
 
 #endif

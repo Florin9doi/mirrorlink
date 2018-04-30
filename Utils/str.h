@@ -5,9 +5,9 @@
 extern "C" {
 #endif
 
-typedef char * str_t;
+typedef char* str_t;
 
-extern void str_append(str_t *str, char *tail);
+void str_append(str_t *str, const char *tail);
 
 #ifdef __cplusplus
 }

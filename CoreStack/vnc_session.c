@@ -7,77 +7,22 @@
 #include "../Platform/conn.h"
 #include "../Utils/buffer.h"
 
-struct server_dispinfo {
-	uint8_t maxv;
-	uint8_t minv;
-	uint16_t :10;
-	uint16_t sfat:1;
-	uint16_t :1;
-	uint16_t sfds:1;
-	uint16_t sfus:1;
-	uint16_t sfr:1;
-	uint16_t sfos:1;
-	uint16_t rpwidth;
-	uint16_t rpheight;
-	uint32_t :6;
-	uint32_t sgray:1;
-	uint32_t dgray:1;
-	uint32_t other16:1;
-	uint32_t :3;
-	uint32_t rgb343:1;
-	uint32_t rgb444:1;
-	uint32_t rgb555:1;
-	uint32_t rgb565:1;
-	uint32_t other24:1;
-	uint32_t :6;
-	uint32_t rgb888:1;
-	uint32_t other32:1;
-	uint32_t :6;
-	uint32_t argb888:1;
-} __attribute((packed));
 
-struct server_evinfo {
-	uint16_t kblc;
-	uint16_t kbcc;
-	uint16_t uilc;
-	uint16_t uicc;
-	uint32_t knob;
-	uint32_t device;
-	uint32_t multimedia;
-	uint32_t :16;
-	uint32_t fun_num:8;
-	uint32_t evmap:1;
-	uint32_t kel:1;
-	uint32_t vkt:1;
-	uint32_t keypad:1;
-	uint32_t tepm:8;
-	uint32_t tnse:8;
-	uint32_t pebm:8;
-	uint32_t :6;
-	uint32_t tes:1;
-	uint32_t pes:1;
-} __attribute((packed));
+static void fb_update_parse(vnc_session *session, uint16_t num);
+static void server_cut_text_parse(vnc_session *session, uint32_t len);
+static uint8_t ex_message_parse(vnc_session *session, uint8_t etype, uint16_t len);
+static void framebuffer_raw_parse(vnc_session *session, uint8_t *fb, uint32_t len);
+static void framebuffer_rle_parse(vnc_session *session);
+static uint8_t vnc_session_doworks(vnc_session *session);
 
-struct vnc_session {
-	int fd;
-	uint16_t rfb_width;
-	uint16_t rfb_height;
-	struct server_dispinfo sdinfo;
-	struct server_evinfo seinfo;
-	uint8_t status;
-	struct vnc_session_cb *cb;
-};
+int vnc_session_start(const char *ip, uint16_t port) {
+	int fd = conn_open(ip, port);
+	return fd;
+}
 
-static void fb_update_parse(struct vnc_session *session, uint16_t num);
-static void server_cut_text_parse(struct vnc_session *session, uint32_t len);
-static uint8_t ex_message_parse(struct vnc_session *session, uint8_t etype, uint16_t len);
-static void framebuffer_raw_parse(struct vnc_session *session, uint8_t *fb, uint32_t len);
-static void framebuffer_rle_parse(struct vnc_session *session);
-static uint8_t vnc_session_doworks(struct vnc_session *session);
-
-void vnc_session_task(int fd, struct vnc_session_cb *cb)
+void vnc_session_task(int fd, vnc_session_cb *cb)
 {
-	struct vnc_session session;
+	vnc_session session;
 	uint8_t version = 0;
 	session.status = 0;
 	session.fd = fd;
@@ -145,7 +90,7 @@ void vnc_session_task(int fd, struct vnc_session_cb *cb)
 	/* Initialization Messages */
 	{
 		uint8_t val = 0;
-		struct buffer buf;
+		buffer buf;
 		uint32_t len = 0;
 		conn_write(session.fd, &val, 1);
 		buffer_init(&buf, 24);
@@ -191,7 +136,7 @@ void vnc_session_task(int fd, struct vnc_session_cb *cb)
 	while (vnc_session_doworks(&session));
 }
 
-uint8_t vnc_session_doworks(struct vnc_session *session)
+uint8_t vnc_session_doworks(vnc_session *session)
 {
 		uint8_t msg_type = 0xff;
 		conn_read(session->fd, &msg_type, 1);
@@ -247,7 +192,7 @@ uint8_t vnc_session_doworks(struct vnc_session *session)
 		return 1;
 }
 
-uint8_t ex_message_parse(struct vnc_session *session, uint8_t etype, uint16_t len)
+uint8_t ex_message_parse(vnc_session *session, uint8_t etype, uint16_t len)
 {
 	uint8_t *buf;
 	buf = (uint8_t *)calloc(1, len);
@@ -393,7 +338,7 @@ uint8_t ex_message_parse(struct vnc_session *session, uint8_t etype, uint16_t le
 	return 1;
 }
 
-void fb_update_parse(struct vnc_session *session, uint16_t num)
+void fb_update_parse(vnc_session *session, uint16_t num)
 {
 	uint16_t i;
 	uint8_t fb_update = 0;
@@ -433,7 +378,7 @@ void fb_update_parse(struct vnc_session *session, uint16_t num)
 			case -524: /* Context Information */
 				{
 					{
-						struct context_info info;
+						context_info info;
 						conn_read(session->fd, (char *)&info, 20);
 					}
 					printf("context information received\n");
@@ -482,7 +427,7 @@ void fb_update_parse(struct vnc_session *session, uint16_t num)
 	}
 }
 
-void server_cut_text_parse(struct vnc_session *session, uint32_t len)
+void server_cut_text_parse(vnc_session *session, uint32_t len)
 {
 	uint8_t *buf;
 	buf = (uint8_t *)malloc(len);
@@ -490,12 +435,12 @@ void server_cut_text_parse(struct vnc_session *session, uint32_t len)
 	free(buf);
 }
 
-void framebuffer_raw_parse(struct vnc_session *session, uint8_t *fb, uint32_t len)
+void framebuffer_raw_parse(vnc_session *session, uint8_t *fb, uint32_t len)
 {
 	
 }
 
-void framebuffer_rle_parse(struct vnc_session *session)
+void framebuffer_rle_parse(vnc_session *session)
 {
 	uint16_t i;
 	for (i = 0; i < session->rfb_height; i++) {

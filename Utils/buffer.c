@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 
-void buffer_init(struct buffer *buf, uint32_t size)
+void buffer_init(buffer *buf, uint32_t size)
 {
 	memset(buf, 0, sizeof(*buf));
 	if (size) {
@@ -13,7 +13,7 @@ void buffer_init(struct buffer *buf, uint32_t size)
 	}
 }
 
-void buffer_clear(struct buffer *buf)
+void buffer_clear(buffer *buf)
 {
 	free(buf->buf);
 	buf->buf = 0;
@@ -21,7 +21,7 @@ void buffer_clear(struct buffer *buf)
 	buf->len = 0;
 }
 
-void buffer_append(struct buffer *buf, int size)
+void buffer_append(buffer *buf, int size)
 {
 	if (size + buf->len > buf->size) {
 		uint8_t *b = (uint8_t *)calloc(1, (size + buf->len) * sizeof(*b));

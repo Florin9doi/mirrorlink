@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-void str_append(str_t *str, char *tail)
+void str_append(str_t *str, const char *tail)
 {
 	uint32_t lo = *str ? strlen(*str):0;
 	uint32_t ln = strlen(tail);

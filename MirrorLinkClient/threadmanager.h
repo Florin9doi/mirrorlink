@@ -17,11 +17,13 @@ signals:
 	void start(QString ip, quint16 port, QString path);
 	void stop();
 	void launch(quint32 appid);
+	void addApp(int appID, char *name, char *description);
 
 public slots:
 	void startMirrorLinkClient(QString ip, quint16 port, QString path);
 	void stopMirrorLinkClient();
 	void launchApp(quint32 appid);
+	void onAddApp(int appID, char *name, char *description);
 
 private slots:
 	void onThreadStart();
