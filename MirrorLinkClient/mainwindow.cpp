@@ -26,3 +26,8 @@ void MainWindow::on_stopButton_clicked()
 {
 	m_manager.stopMirrorLinkClient();
 }
+
+void MainWindow::on_launchButton_clicked() {
+	QString t = ui->locLineEdit->text();
+	m_manager.launchApp(t.toInt());
+}
