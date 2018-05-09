@@ -9,3 +9,6 @@ http://192.168.42.129:4004/description.xml
 
 LG
 http://192.168.42.129:1378/
+
+Sony
+http://192.168.32.129:33114/upnp/desc.xml
