@@ -26,11 +26,13 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    usb.cpp
+    usb.cpp \
+    upnp.cpp
 
 HEADERS += \
         mainwindow.h \
-    usb.h
+    usb.h \
+    upnp.h
 
 FORMS += \
         mainwindow.ui
