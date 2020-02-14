@@ -1,14 +1,16 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <libusb.h>
-#include "usb.h"
 #include <QDebug>
+#include "usb.h"
 
-int try_to_enable_mirror_link(libusb_device *device) {
+#define TAG "[USB]"
+
+int try_to_enable_mirror_link(libusb_context *context, libusb_device *device) {
     libusb_device_handle *handle = NULL;
     libusb_open(device, &handle);
     if (handle == NULL) {
-        qDebug() << " - Error: cannot open the device - permission denied";
+        qDebug() << TAG << "- error: cannot open the device - permission denied";
         return 1;
     }
 
@@ -18,13 +20,13 @@ int try_to_enable_mirror_link(libusb_device *device) {
     uint16_t wIndex       = 0x00;
     unsigned char *data   = NULL;
     uint16_t wLength      = 0;
-    unsigned int timeout  = 100;
+    unsigned int timeout  = 10;
 
     int ret = libusb_control_transfer(handle, bmRequestType, bRequest, wValue, wIndex, data, wLength, timeout);
     if (ret == LIBUSB_SUCCESS) {
-        qDebug() << " - USB transfer SUCCESS - possible a MirrorLink device";
+        qDebug() << TAG << "- USB transfer SUCCESS - possible a MirrorLink device";
     } else {
-        qDebug() << " - USB transfer error: " << libusb_error_name(ret);
+        qDebug() << TAG << "- USB transfer error: " << libusb_error_name(ret);
     }
 
     libusb_close(handle);
@@ -38,24 +40,22 @@ int hotplug_callback(libusb_context *context, libusb_device *device, libusb_hotp
     libusb_get_device_descriptor(device, &descriptor);
 
     if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED) {
-        qDebug() << "USB device detected : "
+        qDebug() << TAG << "USB device detected : "
                  << QString::number(descriptor.idVendor, 16) << ":"
                  << QString::number(descriptor.idProduct, 16);
-        try_to_enable_mirror_link(device);
+        try_to_enable_mirror_link(context, device);
     } else if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT) {
-        qDebug() << "USB device disconnected : " << descriptor.idVendor << ":" << descriptor.idProduct;
+        qDebug() << TAG << "USB device disconnected : "
+                 << QString::number(descriptor.idVendor, 16) << ":"
+                 << QString::number(descriptor.idProduct, 16);
     }
     return 0;
 }
 
 void USBThread::run() {
-    int ret;
-
     libusb_context *context = NULL;
-    ret = libusb_init(&context);
-    if (ret < 0) {
-        printf("libusb_init: %d", ret);
-//        return ret;
+    if (libusb_init(&context) < 0) {
+        qDebug() << TAG << "libusb_init error";
         return;
     }
 

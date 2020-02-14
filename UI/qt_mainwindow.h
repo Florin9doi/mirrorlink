@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "usb.h"
+#include "main.h"
 
 namespace Ui {
 class MainWindow;
@@ -19,6 +20,7 @@ public:
 private:
     Ui::MainWindow *ui;
     USBThread *usbThread;
+    UPnPThread *upnpThread;
 };
 
 #endif // MAINWINDOW_H
