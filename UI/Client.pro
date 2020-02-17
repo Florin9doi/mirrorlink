@@ -27,12 +27,14 @@ SOURCES += \
     usb.cpp \
     qt_main.cpp \
     qt_mainwindow.cpp \
-    main.cpp
+    main.cpp \
+    ssdp.cpp
 
 HEADERS += \
     usb.h \
     qt_mainwindow.h \
-    main.h
+    main.h \
+    ssdp.h
 
 FORMS += \
         mainwindow.ui
