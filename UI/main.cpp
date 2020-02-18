@@ -144,7 +144,7 @@ int on_netlink_event(Context *context, int sockint) {
 ////////////////////////////////
 
 int open_multicast_socket() {
-    int multicast_socket = -1;
+    int multicast_socket;
     if ((multicast_socket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         qDebug() << TAG << "multicast socket error";
         return -1;
@@ -159,7 +159,7 @@ int open_multicast_socket() {
     struct sockaddr_in group_addr;
     memset(&group_addr, 0, sizeof(group_addr));
     group_addr.sin_family      = AF_INET;
-    group_addr.sin_addr.s_addr = inet_addr("239.255.255.250");
+    group_addr.sin_addr.s_addr = htonl(INADDR_ANY);
     group_addr.sin_port        = htons(1900);
 
     if (bind(multicast_socket, (struct sockaddr *)&group_addr, sizeof(group_addr)) < 0) {
@@ -168,7 +168,8 @@ int open_multicast_socket() {
     }
 
     struct ip_mreq membership;
-    membership.imr_multiaddr        = group_addr.sin_addr;
+    memset(&membership, 0, sizeof(membership));
+    membership.imr_multiaddr.s_addr = inet_addr("239.255.255.250");
     membership.imr_interface.s_addr = htonl(INADDR_ANY);
 
 	if (setsockopt(multicast_socket, IPPROTO_IP, IP_ADD_MEMBERSHIP, &membership, sizeof(membership)) < 0) {
@@ -178,6 +179,12 @@ int open_multicast_socket() {
 
 	return multicast_socket;
 }
+
+
+////////////////////////////////
+/// main loop
+////////////////////////////////
+
 void UPnPThread::run() {
     Context *context = (Context*) calloc(1, sizeof (Context));
 
@@ -225,12 +232,18 @@ void UPnPThread::run() {
             on_netlink_event(context, netlink_socket);
         }
 
-//        if (FD_ISSET(multicast_socket, &readfds)) {
-//            struct sockaddr_in from;
-//            int len = sizeof(from);
-//            if ((n = recvfrom(recv_s, message, MAXLEN, 0, (struct sockaddr*)&from, &len)) < 0) {
-//            }
-//        }
+        if (FD_ISSET(multicast_socket, &readfds)) {
+            char buffer[1025];
+            struct sockaddr_in from_addr;
+            unsigned int from_len = sizeof(from_addr);
+            int read_size = recvfrom(multicast_socket, buffer, 1024, 0, (struct sockaddr*)&from_addr, &from_len);
+            if (read_size > 0) {
+                buffer[read_size] = 0;
+                qDebug() << TAG << "multicast_socket: " << inet_ntoa(from_addr.sin_addr)
+                         << " : " << read_size
+                         << " : " << buffer;
+            }
+        }
 
         for (rc = context->remoteClients; rc != NULL; rc = rc->next) {
             if (FD_ISSET(rc->sockFd, &readfds)) {

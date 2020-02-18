@@ -23,4 +23,8 @@ signals:
     void resultReady(const QString &s);
 };
 
+
+RemoteClient *add_client(Context *context, int sockFd, struct sockaddr_in group_addr);
+int remove_client(Context *context, int sockFd);
+
 #endif // UPNP_H
