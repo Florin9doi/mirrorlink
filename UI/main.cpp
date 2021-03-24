@@ -120,7 +120,7 @@ int on_netlink_event(Context *context, int sockint) {
             case RTM_NEWADDR:
                 if_indextoname(ifi->ifi_index, ifname);
                 qDebug() << TAG << "msg_handler: RTM_NEWADDR : " << ifname;
-                open_ssdp(context, ifname);
+               // open_ssdp(context, ifname);
                 break;
             case RTM_DELADDR:
                 if_indextoname(ifi->ifi_index, ifname);
@@ -159,7 +159,7 @@ int open_multicast_socket() {
     struct sockaddr_in group_addr;
     memset(&group_addr, 0, sizeof(group_addr));
     group_addr.sin_family      = AF_INET;
-    group_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    group_addr.sin_addr.s_addr = INADDR_ANY;
     group_addr.sin_port        = htons(1900);
 
     if (bind(multicast_socket, (struct sockaddr *)&group_addr, sizeof(group_addr)) < 0) {
@@ -196,9 +196,18 @@ void UPnPThread::run() {
     getifaddrs(&addrs);
     tmp = addrs;
     while (tmp) {
-        if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET) {
-            if (tmp->ifa_flags & IFF_MULTICAST && strcmp(tmp->ifa_name, "enp0s20f0u2") == 0) {
-                open_ssdp(context, tmp->ifa_name);
+        if (tmp->ifa_addr) {
+            struct sockaddr_in *addr_in = (struct sockaddr_in *)tmp->ifa_addr;
+            char *ip_addr = inet_ntoa(addr_in->sin_addr);
+            qDebug() << TAG << "IP address: " << ip_addr;
+
+            if (//tmp->ifa_addr->sa_family == AF_PACKET && tmp->ifa_flags & IFF_MULTICAST
+            //&&
+               strncmp(ip_addr, "192.168.42.", 11) == 0
+            // && strcmp(tmp->ifa_name, "enp0s20f0u2") == 0
+            ) {
+                qDebug() << TAG << "IP address OK: " << ip_addr;
+                open_ssdp(context, tmp->ifa_addr);
             }
         }
         tmp = tmp->ifa_next;
@@ -225,7 +234,7 @@ void UPnPThread::run() {
 
         struct timeval timeout = {0, 10*1000};   // 10 ms
         if ((select(max_fd + 1, &readfds, NULL, NULL, &timeout) < 0) && (errno != EINTR)) {
-            printf("select error");
+            qDebug() << TAG << "select error";
         }
 
         if (FD_ISSET(netlink_socket, &readfds)) {
@@ -252,7 +261,7 @@ void UPnPThread::run() {
                 if (read_size == 0) {
                     remove_client(context, rc->sockFd);
                 } else {
-                    printf("message = \"%s\"\n", buffer);
+                    qDebug() << TAG << "message " << buffer;
                     handle_ssdp_resp(rc->sockFd, (struct sockaddr *) &rc->group_addr, buffer);
                 }
             }

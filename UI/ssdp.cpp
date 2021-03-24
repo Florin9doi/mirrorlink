@@ -39,7 +39,7 @@ int send_ssdp(int fd, struct sockaddr *addr, char *searchTarget) {
      char buffer[1024] = { 0 };
      int buf_len = create_ssdp_message(buffer, searchTarget);
 
-//     qDebug() << TAG << "sending: " << buffer;
+     qDebug() << TAG << "sending: " << buffer;
      int ret = sendto(fd, buffer, buf_len, 0, addr, sizeof(struct sockaddr_in));
      if (ret < 0) {
           perror("sendto");
@@ -74,18 +74,18 @@ int handle_ssdp_resp(int fd, struct sockaddr *addr, char *buffer) {
      return 0;
 }
 
-int open_ssdp(Context* context, char* ifname) {
+int open_ssdp(Context* context, struct sockaddr *addr) {
      int fd = socket(AF_INET, SOCK_DGRAM, 0);
      if (fd < 0) {
           perror("socket");
           exit(1);
      }
 
-     int reuse = 1;
-     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
-          perror("SO_REUSEADDR");
-          exit(1);
-     }
+//     int reuse = 1;
+//     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
+//          perror("SO_REUSEADDR");
+//          exit(1);
+//     }
 
      struct timeval tv;
      tv.tv_sec = 1;
@@ -95,10 +95,44 @@ int open_ssdp(Context* context, char* ifname) {
           exit(1);
      }
 
-     if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, ifname, strlen(ifname)) < 0) {
-          perror("SO_BINDTODEVICE");
-          exit(1);
-     };
+//     if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, ifname, strlen(ifname)) < 0) {
+//          perror("SO_BINDTODEVICE");
+//          exit(1);
+//     };
+
+
+     struct sockaddr_in group_addr_bind;
+     memset(&group_addr_bind, 0, sizeof(group_addr_bind));
+     group_addr_bind.sin_family      = AF_INET;
+     group_addr_bind.sin_addr.s_addr = INADDR_ANY;
+     group_addr_bind.sin_port        = htons(1911);
+
+     if (bind(fd, (struct sockaddr *)&group_addr_bind, sizeof(group_addr_bind)) < 0) {
+         qDebug() << TAG << "multicast bind error";
+         return -1;
+     }
+
+     char loopch = 0;
+     if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP, &loopch, sizeof(loopch)) < 0) {
+         perror("IP_MULTICAST_LOOP");
+         exit(1);
+     }
+
+//     struct ip_mreq imr;
+     struct sockaddr_in *sin = (struct sockaddr_in *)addr;
+//     imr.imr_interface        = sin->sin_addr;
+//     imr.imr_multiaddr.s_addr = inet_addr("239.255.255.250");
+//     if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &imr, sizeof(imr))) {
+//         perror("IP_ADD_MEMBERSHIP");
+//         exit(1);
+//     }
+
+     struct in_addr if_addr;
+     if_addr = sin->sin_addr;
+     if(setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, &if_addr, sizeof(if_addr)) < 0) {
+         perror("IP_MULTICAST_IF");
+         exit(1);
+     }
 
      struct sockaddr_in group_addr;
      memset(&group_addr, 0, sizeof(group_addr));

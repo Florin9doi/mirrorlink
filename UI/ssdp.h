@@ -5,6 +5,6 @@
 #include "main.h"
 
 int handle_ssdp_resp(int fd, struct sockaddr *addr, char *buffer);
-int open_ssdp(Context* context, char* ifname);
+int open_ssdp(Context* context, struct sockaddr *addr);
 
 #endif // SSDP_H
