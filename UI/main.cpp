@@ -90,6 +90,8 @@ int open_netlink_socket() {
 }
 
 int on_netlink_event(Context *context, int sockint) {
+    (void) context;
+
     int len;
     char buf[4096];
     struct sockaddr_nl snl;
@@ -110,24 +112,41 @@ int on_netlink_event(Context *context, int sockint) {
 
         struct ifinfomsg *ifi = (struct ifinfomsg*) NLMSG_DATA(nlh);
         struct ifaddrmsg *ifa = (struct ifaddrmsg*) NLMSG_DATA(nlh);
-        char ifname[IFNAMSIZ];
+        char addrstr[INET6_ADDRSTRLEN] = "";
+        char ifname[IFNAMSIZ] = "";
+        struct rtattr *rta;
+        int rta_len;
         switch (nlh->nlmsg_type) {
             case RTM_NEWLINK:
-                if_indextoname(ifa->ifa_index, ifname);
+                if_indextoname(ifi->ifi_index, ifname);
                 qDebug() << TAG << "msg_handler: RTM_NEWLINK : " << ifname << " "
                          << ((ifi->ifi_flags & IFF_UP) ? "Up" : "Down");
                 break;
             case RTM_NEWADDR:
-                if_indextoname(ifi->ifi_index, ifname);
+                if_indextoname(ifa->ifa_index, ifname);
                 qDebug() << TAG << "msg_handler: RTM_NEWADDR : " << ifname;
-               // open_ssdp(context, ifname);
+
+                rta_len = IFA_PAYLOAD(nlh);
+                for (rta = IFA_RTA(ifa); RTA_OK(rta, rta_len); rta = RTA_NEXT(rta, rta_len)) {
+                    if (rta->rta_type == IFA_ADDRESS) {
+                        if (ifa->ifa_family == AF_INET) {
+                            struct in_addr *addr4 = (struct in_addr *) RTA_DATA(rta);
+                            if (RTA_PAYLOAD(rta) < sizeof(*addr4)) {
+                                continue;
+                            }
+                            inet_ntop(AF_INET, addr4, addrstr, sizeof(addrstr));
+                            qDebug() << TAG << "msg_handler: RTM_NEWADDR : " << addrstr;
+                            open_ssdp(context, addr4);
+                        }
+                    }
+                }
                 break;
             case RTM_DELADDR:
-                if_indextoname(ifi->ifi_index, ifname);
+                if_indextoname(ifa->ifa_index, ifname);
                 qDebug() << TAG << "msg_handler: RTM_DELADDR : " << ifname;
                 break;
             case RTM_DELLINK:
-                if_indextoname(ifa->ifa_index,ifname);
+                if_indextoname(ifi->ifi_index,ifname);
                 qDebug() << TAG << "msg_handler: RTM_DELLINK : " << ifname;
                 break;
             default:
@@ -201,13 +220,9 @@ void UPnPThread::run() {
             char *ip_addr = inet_ntoa(addr_in->sin_addr);
             qDebug() << TAG << "IP address: " << ip_addr;
 
-            if (//tmp->ifa_addr->sa_family == AF_PACKET && tmp->ifa_flags & IFF_MULTICAST
-            //&&
-               strncmp(ip_addr, "192.168.42.", 11) == 0
-            // && strcmp(tmp->ifa_name, "enp0s20f0u2") == 0
-            ) {
+            if (strncmp(ip_addr, "192.168.42.", 11) == 0) {
                 qDebug() << TAG << "IP address OK: " << ip_addr;
-                open_ssdp(context, tmp->ifa_addr);
+                open_ssdp(context, &addr_in->sin_addr);
             }
         }
         tmp = tmp->ifa_next;

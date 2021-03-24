@@ -20,11 +20,11 @@
 /// SSDP
 ////////////////////////////////
 
-#define TM_TAS "urn:schemas-upnp-org:service:TmApplicationServer:1"
-#define TM_TCP "urn:schemas-upnp-org:service:TmClientProfile:1"
-#define TM_TSD "urn:schemas-upnp-org:device:TmServerDevice:1"
+const char* TM_TAS = "urn:schemas-upnp-org:service:TmApplicationServer:1";
+const char* TM_TCP = "urn:schemas-upnp-org:service:TmClientProfile:1";
+const char* TM_TSD = "urn:schemas-upnp-org:device:TmServerDevice:1";
 
-int create_ssdp_message(char *out, char *searchTarget) {
+int create_ssdp_message(char *out, const char *searchTarget) {
      int len = 0;
      len += sprintf(out + len, "M-SEARCH * HTTP/1.1\r\n");
      len += sprintf(out + len, "HOST: 239.255.255.250:1900\r\n");
@@ -35,7 +35,7 @@ int create_ssdp_message(char *out, char *searchTarget) {
      return len;
 }
 
-int send_ssdp(int fd, struct sockaddr *addr, char *searchTarget) {
+int send_ssdp(int fd, struct sockaddr *addr, const char *searchTarget) {
      char buffer[1024] = { 0 };
      int buf_len = create_ssdp_message(buffer, searchTarget);
 
@@ -74,7 +74,7 @@ int handle_ssdp_resp(int fd, struct sockaddr *addr, char *buffer) {
      return 0;
 }
 
-int open_ssdp(Context* context, struct sockaddr *addr) {
+int open_ssdp(Context* context, struct in_addr *addr) {
      int fd = socket(AF_INET, SOCK_DGRAM, 0);
      if (fd < 0) {
           perror("socket");
@@ -119,7 +119,7 @@ int open_ssdp(Context* context, struct sockaddr *addr) {
      }
 
 //     struct ip_mreq imr;
-     struct sockaddr_in *sin = (struct sockaddr_in *)addr;
+//     struct sockaddr_in *sin = (struct sockaddr_in *)addr;
 //     imr.imr_interface        = sin->sin_addr;
 //     imr.imr_multiaddr.s_addr = inet_addr("239.255.255.250");
 //     if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &imr, sizeof(imr))) {
@@ -127,8 +127,7 @@ int open_ssdp(Context* context, struct sockaddr *addr) {
 //         exit(1);
 //     }
 
-     struct in_addr if_addr;
-     if_addr = sin->sin_addr;
+     struct in_addr if_addr = *addr;
      if(setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, &if_addr, sizeof(if_addr)) < 0) {
          perror("IP_MULTICAST_IF");
          exit(1);
@@ -147,4 +146,5 @@ int open_ssdp(Context* context, struct sockaddr *addr) {
      send_ssdp(fd, (struct sockaddr *) &group_addr, TM_TSD);
 
      add_client(context, fd, group_addr);
+     return 0;
 }

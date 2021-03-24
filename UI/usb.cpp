@@ -7,6 +7,8 @@
 #define TAG "[USB]"
 
 int try_to_enable_mirror_link(libusb_context *context, libusb_device *device) {
+    (void) context;
+
     libusb_device_handle *handle = NULL;
     libusb_open(device, &handle);
     if (handle == NULL) {

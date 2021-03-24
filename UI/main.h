@@ -1,8 +1,8 @@
 #ifndef UPNP_H
 #define UPNP_H
 
-#include <arpa/inet.h>
 #include <QThread>
+#include <arpa/inet.h>
 
 typedef struct _RemoteClient {
     int sockFd;
