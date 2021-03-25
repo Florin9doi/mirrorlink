@@ -3,10 +3,10 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "../Platform/conn.h"
-#include "../Platform/http_client.h"
-#include "../Utils/buffer.h"
-#include "../Utils/str.h"
+#include "conn.h"
+#include "http_client.h"
+#include "buffer.h"
+#include "str.h"
 
 http_req *http_client_make_req(char *method, const char *path)
 {

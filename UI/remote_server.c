@@ -6,7 +6,7 @@
 #include "libxml/parser.h"
 #include "libxml/tree.h"
 
-#include "../Platform/http_client.h"
+#include "http_client.h"
 #include "remote_server.h"
 
 static action action_map[ACTION_MAX] = {

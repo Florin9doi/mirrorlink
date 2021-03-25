@@ -2,7 +2,7 @@
 #define _CONN_H
 
 #include <stdint.h>
-#include "../Utils/buffer.h"
+#include "buffer.h"
 
 int conn_open(const char *ip, uint16_t port);
 

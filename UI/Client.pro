@@ -1,9 +1,3 @@
-#-------------------------------------------------
-#
-# Project created by QtCreator 2020-02-13T14:34:59
-#
-#-------------------------------------------------
-
 QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -28,16 +22,26 @@ SOURCES += \
     qt_main.cpp \
     qt_mainwindow.cpp \
     main.cpp \
-    ssdp.cpp
+    ssdp.cpp \
+    str.c \
+    buffer.c \
+    conn.c \
+    http_client.c \
+    remote_server.c
 
 HEADERS += \
     usb.h \
     qt_mainwindow.h \
     main.h \
-    ssdp.h
+    ssdp.h \
+    str.h \
+    buffer.h \
+    conn.h \
+    http_client.h \
+    remote_server.h
 
 FORMS += \
         mainwindow.ui
 
-INCLUDEPATH += /usr/include/libusb-1.0
-LIBS += -lusb-1.0
+INCLUDEPATH += /usr/include/libusb-1.0 /usr/include/libxml2
+LIBS += -lusb-1.0 -lxml2

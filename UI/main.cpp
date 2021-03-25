@@ -12,6 +12,7 @@
 #include <sys/socket.h>
 
 #include <QDebug>
+#include <QUrl>
 #include "main.h"
 #include "ssdp.h"
 
@@ -276,10 +277,38 @@ void UPnPThread::run() {
                 if (read_size == 0) {
                     remove_client(context, rc->sockFd);
                 } else {
-                    qDebug() << TAG << "message " << buffer;
-                    handle_ssdp_resp(rc->sockFd, (struct sockaddr *) &rc->group_addr, buffer);
+                    //qDebug() << TAG << "message " << buffer;
+                    handle_ssdp_resp(context, rc->sockFd, (struct sockaddr *) &rc->group_addr, buffer);
                 }
             }
+        }
+
+        if (context->serverState == 0
+                && context->tmApplicationServer != 0
+                && context->tmClientProfile != 0
+                && context->tmServerDevice != 0) {
+            // get app list
+
+            QString url_str = context->tmApplicationServer;
+            QUrl url(url_str);
+            if (!context->m_server) {
+                context->m_server = remote_server_create(url.host().toStdString().c_str(),
+                                            url.port(), url.path().toStdString().c_str());
+            }
+            if (context->m_server) {
+                char appFilter[] = "*";
+                remote_server_get_application_list(context->m_server, 0, appFilter);
+                App *nextApp = context->m_server->appList;
+                while (nextApp) {
+                    App *app = nextApp;
+                    qDebug() << "App: " << app->appID << " " << app->name << " " << app->description
+                             << " " << app->iconPath;
+                    //emit addApp(app->appID, app->name, app->description);
+                    nextApp = app->next;
+                    free(app);
+                }
+            }
+            context->serverState = 1;
         }
     }
 

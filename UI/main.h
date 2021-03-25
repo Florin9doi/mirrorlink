@@ -3,6 +3,8 @@
 
 #include <QThread>
 #include <arpa/inet.h>
+#include <arpa/inet.h>
+#include <remote_server.h>
 
 typedef struct _RemoteClient {
     int sockFd;
@@ -12,7 +14,14 @@ typedef struct _RemoteClient {
 } RemoteClient;
 
 typedef struct _Context {
+    int serverState = 0;
+
     RemoteClient *remoteClients;
+    char tmApplicationServer[1024];
+    char tmClientProfile[1024];
+    char tmServerDevice[1024];
+
+    remote_server *m_server;
 } Context;
 
 class UPnPThread : public QThread {

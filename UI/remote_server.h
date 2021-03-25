@@ -2,7 +2,7 @@
 #define _REMOTE_SERVER_H
 
 #include <stdint.h>
-#include "../Utils/str.h"
+#include "str.h"
 
 #ifdef __cplusplus
 extern "C" {

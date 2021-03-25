@@ -48,30 +48,39 @@ int send_ssdp(int fd, struct sockaddr *addr, const char *searchTarget) {
      return 0;
 }
 
-int handle_ssdp_resp(int fd, struct sockaddr *addr, char *buffer) {
+int handle_ssdp_resp(Context* context, int fd, struct sockaddr *addr, char *buffer) {
      char *ptr = NULL;
      int found = 0;
-     char location[1024] = {0};
      char st[1024] = {0};
+     char location[1024] = {0};
 
      ptr = strtok(buffer, "\n");
      while (ptr) {
           if (strstr(ptr, "ST: ")) {
                sscanf(ptr, "ST: %s", st);
-               if (!strcmp(st, TM_TAS)) {
-                    found = 1;
-               }
           } else if (strstr(ptr, "Location: ")) {
                sscanf(ptr, "Location: %s", location);
           }
           ptr = strtok(NULL, "\n");
      }
 
-     if (found) {
-          qDebug() << TAG << " ### " << location;
-          qDebug() << TAG << " ### " << st;
+     if (strcmp(st, TM_TAS) == 0) {
+        found = 1;
+        strcpy(context->tmApplicationServer, location);
      }
-     return 0;
+     if (strcmp(st, TM_TCP) == 0) {
+        found = 1;
+        strcpy(context->tmClientProfile, location);
+     }
+     if (strcmp(st, TM_TSD) == 0) {
+        found = 1;
+        strcpy(context->tmServerDevice, location);
+    }
+    if (found) {
+        qDebug() << TAG << " ### " << st;
+        qDebug() << TAG << " # " << location;
+    }
+    return 0;
 }
 
 int open_ssdp(Context* context, struct in_addr *addr) {
@@ -81,11 +90,11 @@ int open_ssdp(Context* context, struct in_addr *addr) {
           exit(1);
      }
 
-//     int reuse = 1;
-//     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
-//          perror("SO_REUSEADDR");
-//          exit(1);
-//     }
+     int reuse = 1;
+     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0) {
+          perror("SO_REUSEADDR");
+          exit(1);
+     }
 
      struct timeval tv;
      tv.tv_sec = 1;
@@ -99,7 +108,6 @@ int open_ssdp(Context* context, struct in_addr *addr) {
 //          perror("SO_BINDTODEVICE");
 //          exit(1);
 //     };
-
 
      struct sockaddr_in group_addr_bind;
      memset(&group_addr_bind, 0, sizeof(group_addr_bind));

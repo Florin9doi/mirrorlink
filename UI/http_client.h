@@ -2,7 +2,7 @@
 #define _HTTP_CLIENT_H
 
 #include <stdint.h>
-#include "../Utils/str.h"
+#include "str.h"
 
 typedef struct _http_req {
 	str_t method;
