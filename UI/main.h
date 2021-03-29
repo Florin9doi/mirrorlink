@@ -30,6 +30,7 @@ class UPnPThread : public QThread {
 
 signals:
     void resultReady(const QString &s);
+    void addApp(int appID, char *name, char *description);
 };
 
 
